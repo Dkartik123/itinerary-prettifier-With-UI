@@ -9,7 +9,18 @@ import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import javafx.scene.control.TextArea;
-
+import javafx.animation.KeyFrame;
+import javafx.animation.KeyValue;
+import javafx.animation.Timeline;
+import javafx.scene.control.TextArea;
+import javafx.scene.layout.Background;
+import javafx.scene.layout.BackgroundFill;
+import javafx.scene.layout.CornerRadii;
+import javafx.scene.layout.Region;
+import javafx.scene.paint.Color;
+import javafx.scene.paint.Paint;
+import javafx.scene.shape.Shape;
+import javafx.util.Duration;
 import java.io.File;
 
 public class ItineraryUI extends Application {
@@ -67,18 +78,42 @@ public class ItineraryUI extends Application {
             textField.setText(file.getAbsolutePath());
         }
     }
+    private void animateBackgroundColor(TextArea textArea, Color startColor, Color endColor) {
+        // Create a timeline for changing the background color
+        Timeline timeline = new Timeline(
+                new KeyFrame(Duration.ZERO, new KeyValue(textArea.backgroundProperty(),
+                        new Background(new BackgroundFill(startColor, CornerRadii.EMPTY, null)))),
+                new KeyFrame(Duration.seconds(1), new KeyValue(textArea.backgroundProperty(),
+                        new Background(new BackgroundFill(endColor, CornerRadii.EMPTY, null))))
+        );
 
+        // Play the animation
+        timeline.play();
+    }
     private void processItinerary() {
         String inputFilePath = inputFileField.getText();
         String outputFilePath = outputFileField.getText();
         String airportLookupFilePath = airportLookupFileField.getText();
 
-        Prettifier prettifier = new Prettifier();
+        try {
+            // Create an instance of the Prettifier class
+            Prettifier prettifier = new Prettifier();
 
-        // Используем метод processItineraryWithResult для получения результата
-        String result = prettifier.processItinerary(inputFilePath, outputFilePath, airportLookupFilePath);
+            // Process the itinerary and get the result
+            String result = prettifier.processItinerary(inputFilePath, outputFilePath, airportLookupFilePath);
 
-        // Отображаем результат в TextArea
-        outputArea.setText(result);
-    }
-}
+            // Display the result in the output area
+            outputArea.setText(result);
+            if (result.startsWith("An error occurred:")) {
+                animateBackgroundColor(outputArea, Color.WHITE, Color.LIGHTCORAL); // Error color
+            } else {
+                animateBackgroundColor(outputArea, Color.WHITE, Color.LIGHTGREEN); // Success color
+            }
+
+
+        } catch (Exception e) {
+            // If an error occurs, display the error message in the output area
+            outputArea.setText("Error occurred: " + e.getMessage());
+            animateBackgroundColor(outputArea, Color.WHITE, Color.LIGHTCORAL);
+        }
+    }}
